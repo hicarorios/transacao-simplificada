@@ -45,7 +45,7 @@ class TransacaoController extends Controller
             return response()->json(['menssage' => $e->getMessage()], 400);
         }
 
-        return response()->json(['Sucesso'], 201);
+        return response()->json([], 201);
     }
 
     /**

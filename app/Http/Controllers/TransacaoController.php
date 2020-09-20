@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TransacaoRequest;
 use App\Model\Transacao;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TransacaoController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
      * @return \Illuminate\Http\Response
      */
     public function index()
@@ -18,19 +18,15 @@ class TransacaoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TransacaoRequest $request)
     {
-        //
+        return response()->json([], 201);
     }
 
     /**
-     * Display the specified resource.
-     *
      * @param  \App\Transacao  $Transacao
      * @return \Illuminate\Http\Response
      */
@@ -40,8 +36,6 @@ class TransacaoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Transacao  $Transacao
      * @return \Illuminate\Http\Response
@@ -52,8 +46,6 @@ class TransacaoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
      * @param  \App\Transacao  $Transacao
      * @return \Illuminate\Http\Response
      */

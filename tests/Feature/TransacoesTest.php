@@ -38,7 +38,7 @@ class ManipularTransacaoTest extends TestCase
     }
 
     /** @test */
-    public function usuario_lojista_nao_pode_efetuar_transacoes()
+    public function usuario_lojista_nao_pode_efetuar_tranferencia()
     {
         $usuarioPagador = factory(\App\Model\Usuario::class)
             ->create(['tipo' => \App\Model\Usuario::TIPO_LOJISTA]);
@@ -53,7 +53,7 @@ class ManipularTransacaoTest extends TestCase
     }
 
     /** @test */
-    public function usuario_sem_saldo_nao_pode_efetuar_transferencias()
+    public function usuario_sem_saldo_nao_pode_efetuar_transferencia()
     {
         $usuarioPagador = factory(\App\Model\Usuario::class)->create();
 
@@ -68,4 +68,21 @@ class ManipularTransacaoTest extends TestCase
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(400);
     }
+
+      /** @test */
+      public function usuario_sem_saldo_suficiente_nao_pode_efetuar_transferencia()
+      {
+          $usuarioPagador = factory(\App\Model\Usuario::class)->create();
+
+          factory(\App\Model\Carteira::class)
+              ->create(['usuario_id' => $usuarioPagador->id, 'saldo' => 50]);
+
+          $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
+
+          $response = $this->json('POST', 'api/transaction', [
+              'value' => 100.00,
+              'payer' => $usuarioPagador->id,
+              'payee' => $usuarioBeneficiario->id,
+          ])->assertStatus(400);
+      }
 }

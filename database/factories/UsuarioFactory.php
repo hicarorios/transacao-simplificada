@@ -4,7 +4,6 @@
 
 use Faker\Generator as Faker;
 use Illuminatse\Support\Str;
-use App\Model\Usuario as UsuarioModel;
 
 $factory->define(\App\Model\Usuario::class, function (Faker $faker) {
     return [

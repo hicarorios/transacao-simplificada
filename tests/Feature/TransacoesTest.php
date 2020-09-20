@@ -34,4 +34,21 @@ class ManipularTransacaoTest extends TestCase
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(201);
     }
+
+     /** @test */
+    public function usuario_lojista_nao_pode_efetuar_transacoes()
+    {
+        //$this->withoutExceptionHandling();
+
+        $usuarioPagador = factory(\App\Model\Usuario::class)
+            ->create(['tipo' => \App\Model\Usuario::TIPO_LOJISTA]);
+
+        $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
+
+        $this->json('POST', 'api/transaction', [
+            'value' => 100.00,
+            'payer' => $usuarioPagador->id,
+            'payee' => $usuarioBeneficiario->id,
+        ])->assertStatus(400);
+    }
 }

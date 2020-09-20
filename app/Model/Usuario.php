@@ -3,6 +3,8 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Usuario extends Model
 {
@@ -33,4 +35,12 @@ class Usuario extends Model
     protected $casts = [
         'tipo' => 'integer',
     ];
+
+    /**
+     * @return HasOne
+     */
+    public function carteira()
+    {
+        return $this->hasOne(Carteira::class)->withDefault();
+    }
 }

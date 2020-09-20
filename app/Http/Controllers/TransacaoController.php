@@ -40,15 +40,12 @@ class TransacaoController extends Controller
         // responder com os dados da transacao
 
         try {
-
             $this->transacaoService->efetuarTransacao($request);
-
-        }
-        catch(InvalidArgumentException $e) {
+        } catch (\DomainException $e) {
             return response()->json(['menssage' => $e->getMessage()], 400);
         }
 
-        return response()->json([], 201);
+        return response()->json(['Sucesso'], 201);
     }
 
     /**

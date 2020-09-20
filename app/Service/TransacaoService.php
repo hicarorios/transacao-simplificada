@@ -18,13 +18,23 @@ class TransacaoService
 
     public function efetuarTransacao(Request $dadosTransferencia)
     {
-        $usuarioPagador = $this->usuarioModel->find($dadosTransferencia->payer);
-        $usuarioBeneficiario = $this->usuarioModel->find($dadosTransferencia->payee);
+        $usuarioPagador = $this->usuarioModel
+            ->with('carteira')
+            ->find($dadosTransferencia->payer);
+
+        $usuarioBeneficiario = $this->usuarioModel
+            ->with('carteira')
+            ->find($dadosTransferencia->payee);
 
         if ($usuarioPagador->tipo == \App\Model\Usuario::TIPO_LOJISTA) {
-            throw new InvalidArgumentException("Users of type Lojista, can't make transactions");
+            throw new DomainException("Users of type Lojista, can't make transactions");
+        }
+
+        if ($usuarioPagador->carteira->saldo == 0) {
+            throw new DomainException("Insufficient funds to make a transaction");
         }
 
         
+
     }
 }

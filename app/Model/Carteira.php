@@ -4,14 +4,14 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Transacao extends Model
+class Carteira extends Model
 {
-    protected string $table = 'transacoes';
-
     /**
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'usuario_id', 'saldo'
+    ];
 
     /**
      * @var array

@@ -14,7 +14,7 @@ class UsuarioTest extends TestCase
     {
         $this->expectException('\Illuminate\Database\QueryException');
 
-       factory(\App\Model\Usuario::class, 2)->create(
+        factory(\App\Model\Usuario::class, 2)->create(
             ['email' => 'teste@teste.com', 'cpf-cnpj' => '02454854220']
         );
     }

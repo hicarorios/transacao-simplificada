@@ -11,7 +11,7 @@ $factory->define(Transacao::class, function (Faker $faker) {
         'cedente_id' => factory(Usuario::class),
         'beneficiario_id' => factory(Usuario::class),
         'valor' => $this->faker->randomFloat(2, 10, 100),
-        'status' => Transacao::STATUS_PAGO,
+        'status' => Transacao::STATUS_TRANSFERIDO,
         'mensagem' => $faker->text(),
     ];
 });

@@ -3,12 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransacaoRequest;
-use App\Model\Transacao;
 use App\Service\TransacaoService;
-use Exception;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use InvalidArgumentException;
 
 class TransacaoController extends Controller
 {
@@ -26,7 +21,6 @@ class TransacaoController extends Controller
     public function store(TransacaoRequest $request)
     {
         try {
-
             $transacao = $this->transacaoService->iniciarTransacao($request);
             $this->transacaoService->efetuarTransacao($transacao, $request);
 

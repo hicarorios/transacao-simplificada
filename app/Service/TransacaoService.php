@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Jobs\NotificarTransferencia;
 use App\Model\Transacao;
 use App\Model\Usuario;
 use DomainException;
@@ -12,11 +13,7 @@ use Illuminate\Support\Facades\Http;
 
 class TransacaoService
 {
-    const MENSAGEM_AUTORIZACAO_TRANSACAO = 'Autorizado';
-    const URL_AUTORIZACAO_TRANSACAO = 'https://run.mocky.io/v3/8fafdd68-a090-496f-8c9a-3442cf30dae6';
-
     private Usuario $usuarioModel;
-
     private Transacao $transacaoModel;
 
     public function __construct(Usuario $usuario, Transacao $transacao)
@@ -77,6 +74,8 @@ class TransacaoService
             'mensagem' => 'The amount has been transferred',
         ]);
 
+        NotificarTransferencia::dispatch($transacao);
+
         return $transacao;
     }
 
@@ -106,9 +105,9 @@ class TransacaoService
             throw new DomainException($mensagem);
         }
 
-        $autorizacaoTransacao = Http::get(self::URL_AUTORIZACAO_TRANSACAO);
+        $autorizacaoTransacao = Http::get(TransacaoEnum::URL_AUTORIZACAO_TRANSACAO);
 
-        if (isset($autorizacaoTransacao) && $autorizacaoTransacao['message'] != self::MENSAGEM_AUTORIZACAO_TRANSACAO) {
+        if (isset($autorizacaoTransacao) && $autorizacaoTransacao['message'] != TransacaoEnum::MENSAGEM_AUTORIZACAO_TRANSACAO) {
             DB::rollBack();
 
             $mensagem = "Transaction not authorized";

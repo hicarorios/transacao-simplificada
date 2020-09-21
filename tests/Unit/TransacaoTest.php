@@ -17,11 +17,11 @@ class TransacaoTest extends TestCase
         $this->assertInstanceOf(\App\Model\Usuario::class, $usuario->cedente);
     }
 
-     /** @test */
-     public function transacao_tem_beneficiario()
-     {
-         $usuario = factory(\App\Model\Transacao::class)->create();
+    /** @test */
+    public function transacao_tem_beneficiario()
+    {
+        $usuario = factory(\App\Model\Transacao::class)->create();
 
-         $this->assertInstanceOf(\App\Model\Usuario::class, $usuario->beneficiario);
-     }
+        $this->assertInstanceOf(\App\Model\Usuario::class, $usuario->beneficiario);
+    }
 }

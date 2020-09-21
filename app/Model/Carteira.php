@@ -10,7 +10,8 @@ class Carteira extends Model
      * @var array
      */
     protected $fillable = [
-        'usuario_id', 'saldo'
+        'usuario_id',
+        'saldo',
     ];
 
     /**

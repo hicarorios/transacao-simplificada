@@ -2,12 +2,13 @@
 
 namespace App\Service;
 
+use App\Model\Transacao;
 use App\Model\Usuario;
 use DomainException;
+use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use InvalidArgumentException;
 
 class TransacaoService
 {
@@ -16,14 +17,40 @@ class TransacaoService
 
     private Usuario $usuarioModel;
 
-    public function __construct(Usuario $usuario)
+    private Transacao $transacaoModel;
+
+    public function __construct(Usuario $usuario, Transacao $transacao)
     {
         $this->usuarioModel = $usuario;
+        $this->transacaoModel = $transacao;
     }
 
-    public function efetuarTransacao(Request $dadosTransferencia)
+    /**
+     * @param Request $dadosTransferencia
+     * @throws MassAssignmentException
+     * @return Transacao
+     */
+    public function iniciarTransacao(Request $dadosTransferencia): Transacao
     {
-        $usuarioPagador = $this->usuarioModel
+        return $this->transacaoModel->create([
+            'cedente_id' => $dadosTransferencia->payer,
+            'beneficiario_id' => $dadosTransferencia->payee,
+            'valor' =>  $dadosTransferencia->value,
+            'status' => Transacao::STATUS_PROCESSANDO,
+            'mensagem' => 'Transaction processing',
+        ]);
+    }
+
+    /**
+     * @param Request $dadosTransferencia
+     * @param Transacao $transacao
+     * @return Transacao
+     * @throws MassAssignmentException
+     * @throws DomainException
+     */
+    public function efetuarTransacao(Transacao $transacao, Request $dadosTransferencia): Transacao
+    {
+        $usuarioCedente = $this->usuarioModel
             ->with('carteira')
             ->find($dadosTransferencia->payer);
 
@@ -31,30 +58,66 @@ class TransacaoService
             ->with('carteira')
             ->find($dadosTransferencia->payee);
 
-        if ($usuarioPagador->tipo == \App\Model\Usuario::TIPO_LOJISTA) {
-            throw new DomainException("Users of type Lojista, can't make transactions");
+        if ($usuarioCedente->tipo == \App\Model\Usuario::TIPO_LOJISTA) {
+            $mensagem = "Users of type Lojista, can't make transactions";
+            $transacao->update(['status' => Transacao::STATUS_RECUSADO, 'mensagem' => $mensagem]);
+            throw new DomainException($mensagem);
         }
 
-        if ($usuarioPagador->carteira->saldo == 0) {
-            throw new DomainException("Insufficient funds to make a transaction");
+        if ($usuarioCedente->carteira->saldo == 0) {
+            $mensagem = "Insufficient funds to make a transaction";
+            $transacao->update(['status' => Transacao::STATUS_RECUSADO, 'mensagem' => $mensagem]);
+            throw new DomainException($mensagem);
         }
 
-        DB::transaction(function () use ($dadosTransferencia, $usuarioPagador, $usuarioBeneficiario) {
-            $usuarioPagador->carteira->saldo -= $dadosTransferencia->value;
-            $usuarioBeneficiario->carteira->saldo += $dadosTransferencia->value;
+        $this->transferirValor($transacao, $usuarioCedente, $usuarioBeneficiario, $dadosTransferencia->value);
 
-            $usuarioPagador->carteira->save();
-            $usuarioBeneficiario->carteira->save();
+        $transacao->update([
+            'status' => Transacao::STATUS_TRANSFERIDO,
+            'mensagem' => 'The amount has been transferred',
+        ]);
 
-            if ($usuarioPagador->carteira->saldo < 0) {
-                throw new DomainException("Insufficient funds to make a transaction");
-            }
+        return $transacao;
+    }
 
-            $autorizacaoTransacao = Http::get(self::URL_AUTORIZACAO_TRANSACAO);
+    /**
+     * @param Transacao $transacao
+     * @param Usuario $usuarioCedente
+     * @param Usuario $usuarioBeneficiario
+     * @param float $valor
+     * @return $transacao
+     * @throws DomainException
+     */
+    private function transferirValor(Transacao $transacao, Usuario $usuarioCedente, Usuario $usuarioBeneficiario, $valor): Transacao
+    {
+        DB::beginTransaction();
 
-            if (isset($autorizacaoTransacao) && $autorizacaoTransacao['message'] != self::MENSAGEM_AUTORIZACAO_TRANSACAO) {
-                throw new DomainException("Transaction not authorized");
-            }
-        });
+        $usuarioCedente->carteira->saldo -= $valor;
+        $usuarioBeneficiario->carteira->saldo += $valor;
+
+        $usuarioCedente->carteira->save();
+        $usuarioBeneficiario->carteira->save();
+
+        if ($usuarioCedente->carteira->saldo < 0) {
+            DB::rollBack();
+
+            $mensagem = "Insufficient funds to make a transaction";
+            $transacao->update(['status' => Transacao::STATUS_RECUSADO, 'mensagem' => $mensagem]);
+            throw new DomainException($mensagem);
+        }
+
+        $autorizacaoTransacao = Http::get(self::URL_AUTORIZACAO_TRANSACAO);
+
+        if (isset($autorizacaoTransacao) && $autorizacaoTransacao['message'] != self::MENSAGEM_AUTORIZACAO_TRANSACAO) {
+            DB::rollBack();
+
+            $mensagem = "Transaction not authorized";
+            $transacao->update(['status' => Transacao::STATUS_RECUSADO, 'mensagem' => $mensagem]);
+            throw new DomainException($mensagem);
+        }
+
+        DB::commit();
+
+        return $transacao;
     }
 }

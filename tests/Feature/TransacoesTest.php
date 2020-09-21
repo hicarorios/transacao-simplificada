@@ -25,10 +25,10 @@ class ManipularTransacaoTest extends TestCase
     /** @test */
     public function usuario_transfere_dinheiro_para_usuario()
     {
-        $usuarioPagador = factory(\App\Model\Usuario::class)->create();
+        $usuarioCedente = factory(\App\Model\Usuario::class)->create();
 
         factory(\App\Model\Carteira::class)
-            ->create(['usuario_id' => $usuarioPagador->id, 'saldo' => 100]);
+            ->create(['usuario_id' => $usuarioCedente->id, 'saldo' => 100]);
 
         $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
 
@@ -37,12 +37,12 @@ class ManipularTransacaoTest extends TestCase
 
         $this->json('POST', 'api/transaction', [
             'value' => 100.00,
-            'payer' => $usuarioPagador->id,
+            'payer' => $usuarioCedente->id,
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(201);
 
         $this->assertDatabaseHas('carteiras', [
-            'usuario_id' => $usuarioPagador->id,
+            'usuario_id' => $usuarioCedente->id,
             'saldo' => 0,
         ]);
 
@@ -55,14 +55,14 @@ class ManipularTransacaoTest extends TestCase
     /** @test */
     public function usuario_lojista_nao_pode_efetuar_tranferencia()
     {
-        $usuarioPagador = factory(\App\Model\Usuario::class)
+        $usuarioCedente = factory(\App\Model\Usuario::class)
             ->create(['tipo' => \App\Model\Usuario::TIPO_LOJISTA]);
 
         $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
 
         $this->json('POST', 'api/transaction', [
             'value' => 100.00,
-            'payer' => $usuarioPagador->id,
+            'payer' => $usuarioCedente->id,
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(400);
     }
@@ -70,10 +70,10 @@ class ManipularTransacaoTest extends TestCase
     /** @test */
     public function usuario_sem_saldo_nao_pode_efetuar_transferencia()
     {
-        $usuarioPagador = factory(\App\Model\Usuario::class)->create();
+        $usuarioCedente = factory(\App\Model\Usuario::class)->create();
 
-        $carteiraUsuarioPagador = factory(\App\Model\Carteira::class)
-            ->create(['usuario_id' => $usuarioPagador->id, 'saldo' => 0])
+        $carteiraUsuarioCedente = factory(\App\Model\Carteira::class)
+            ->create(['usuario_id' => $usuarioCedente->id, 'saldo' => 0])
             ->toArray();
 
         $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
@@ -84,21 +84,21 @@ class ManipularTransacaoTest extends TestCase
 
         $response = $this->json('POST', 'api/transaction', [
             'value' => 100.00,
-            'payer' => $usuarioPagador->id,
+            'payer' => $usuarioCedente->id,
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(400);
 
-        $this->assertDatabaseHas('carteiras', $carteiraUsuarioPagador);
+        $this->assertDatabaseHas('carteiras', $carteiraUsuarioCedente);
         $this->assertDatabaseHas('carteiras', $carteiraUsuarioBeneficiario);
     }
 
     /** @test */
     public function usuario_sem_saldo_suficiente_nao_pode_efetuar_transferencia()
     {
-        $usuarioPagador = factory(\App\Model\Usuario::class)->create();
+        $usuarioCedente = factory(\App\Model\Usuario::class)->create();
 
-        $carteiraUsuarioPagador = factory(\App\Model\Carteira::class)
-            ->create(['usuario_id' => $usuarioPagador->id, 'saldo' => 50])
+        $carteiraUsuarioCedente = factory(\App\Model\Carteira::class)
+            ->create(['usuario_id' => $usuarioCedente->id, 'saldo' => 50])
             ->toArray();
 
         $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
@@ -109,21 +109,21 @@ class ManipularTransacaoTest extends TestCase
 
         $this->json('POST', 'api/transaction', [
             'value' => 100.00,
-            'payer' => $usuarioPagador->id,
+            'payer' => $usuarioCedente->id,
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(400);
 
-        $this->assertDatabaseHas('carteiras', $carteiraUsuarioPagador);
+        $this->assertDatabaseHas('carteiras', $carteiraUsuarioCedente);
         $this->assertDatabaseHas('carteiras', $carteiraUsuarioBeneficiario);
     }
 
     /** @test */
     public function a_transacao_e_revertida_caso_nao_autorizada()
     {
-        $usuarioPagador = factory(\App\Model\Usuario::class)->create();
+        $usuarioCedente = factory(\App\Model\Usuario::class)->create();
 
-        $carteiraUsuarioPagador = factory(\App\Model\Carteira::class)
-            ->create(['usuario_id' => $usuarioPagador->id, 'saldo' => 100])
+        $carteiraUsuarioCedente = factory(\App\Model\Carteira::class)
+            ->create(['usuario_id' => $usuarioCedente->id, 'saldo' => 100])
             ->toArray();
 
         $usuarioBeneficiario = factory(\App\Model\Usuario::class)->create();
@@ -138,11 +138,11 @@ class ManipularTransacaoTest extends TestCase
 
         $this->json('POST', 'api/transaction', [
             'value' => 100.00,
-            'payer' => $usuarioPagador->id,
+            'payer' => $usuarioCedente->id,
             'payee' => $usuarioBeneficiario->id,
         ])->assertStatus(400);
 
-        $this->assertDatabaseHas('carteiras', $carteiraUsuarioPagador);
+        $this->assertDatabaseHas('carteiras', $carteiraUsuarioCedente);
         $this->assertDatabaseHas('carteiras', $carteiraUsuarioBeneficiario);
     }
 }

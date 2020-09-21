@@ -20,59 +20,30 @@ class TransacaoController extends Controller
     }
 
     /**
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(TransacaoRequest $request)
     {
-        // remover o dinheiro informado da carteira do usuario pagador
-        // autorizar transacao
-        // depositar o dinheiro informado na carteira do usuario beneficiario
-        // enviar notificação para usuario beneficiario *
-        // responder com os dados da transacao
-
         try {
-            $this->transacaoService->efetuarTransacao($request);
+
+            $transacao = $this->transacaoService->iniciarTransacao($request);
+            $this->transacaoService->efetuarTransacao($transacao, $request);
+
+            return response()->json([
+                'TransactionID' => $transacao->id,
+                'message' => 'The amount has been transferred with success',
+            ], 201);
         } catch (\DomainException $e) {
-            return response()->json(['menssage' => $e->getMessage()], 400);
+            return response()->json([
+                'TransactionID' => $transacao->id,
+                'message' => $e->getMessage(),
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'TransactionID' => $transacao->id,
+                'message' => 'The transference cannot be completed',
+            ], 400);
         }
-
-        return response()->json([], 201);
-    }
-
-    /**
-     * @param  \App\Transacao  $Transacao
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Transacao $Transacao)
-    {
-        //
-    }
-
-    /**
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Transacao  $Transacao
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Transacao $Transacao)
-    {
-        //
-    }
-
-    /**
-     * @param  \App\Transacao  $Transacao
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Transacao $Transacao)
-    {
-        //
     }
 }

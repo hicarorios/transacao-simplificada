@@ -2,11 +2,13 @@
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
+use App\Model\Carteira;
+use App\Model\Usuario;
 use Faker\Generator as Faker;
 
-$factory->define(\App\Model\Carteira::class, function (Faker $faker) {
+$factory->define(Carteira::class, function (Faker $faker) {
     return [
-        'usuario_id' => factory(\App\Model\Usuario::class),
+        'usuario_id' => factory(Usuario::class),
         'saldo' => $this->faker->randomFloat(2, 10, 100),
     ];
 });

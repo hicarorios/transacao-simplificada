@@ -15,7 +15,20 @@ class CreateTransacoesTable extends Migration
     {
         Schema::create('transacoes', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('cedente_id');
+            $table->unsignedBigInteger('beneficiario_id');
+            $table->decimal('valor');
+            $table->integer('status');
+            $table->string('mensagem');
             $table->timestamps();
+
+            $table->foreign('cedente_id')
+                ->references('id')
+                ->on('usuarios');
+
+            $table->foreign('beneficiario_id')
+                ->references('id')
+                ->on('usuarios');
         });
     }
 

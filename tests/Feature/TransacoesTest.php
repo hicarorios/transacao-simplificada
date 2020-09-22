@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
-class ManipularTransacaoTest extends TestCase
+class TransacoesTest extends TestCase
 {
     use RefreshDatabase;
 

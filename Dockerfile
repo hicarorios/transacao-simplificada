@@ -3,6 +3,8 @@ FROM php:7.4-fpm-alpine3.12
 RUN apk add --no-cache shadow openssl bash autoconf make g++ zlib-dev libpng-dev libzip-dev mysql-client nodejs npm
 RUN docker-php-ext-install pdo pdo_mysql bcmath
 
+ENV LIBRARY_PATH=/lib:/usr/lib
+
 # RUN yes | pecl install xdebug \
 #     && docker-php-ext-enable xdebug \
 #     && echo "\n\
@@ -19,8 +21,11 @@ RUN docker-php-ext-install pdo pdo_mysql bcmath
 COPY ./.docker/php/zz-app.ini /usr/local/etc/php/conf.d/zz-app.ini
 
 WORKDIR /var/www
-RUN rm -rf /var/www/html
 
+COPY ./.docker/start.sh /usr/local/bin/start
+RUN chmod u+x /usr/local/bin/start
+
+RUN rm -rf /var/www/html
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN usermod -u 1000 www-data
@@ -28,4 +33,4 @@ USER www-data
 
 EXPOSE 9000
 
-ENTRYPOINT ["php-fpm"]
+CMD ["/usr/local/bin/start"]
